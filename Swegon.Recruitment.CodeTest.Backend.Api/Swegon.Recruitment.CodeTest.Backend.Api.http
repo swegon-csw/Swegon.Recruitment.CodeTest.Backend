@@ -1,0 +1,6 @@
+@Swegon.Recruitment.CodeTest.Backend.Api_HostAddress = http://localhost:5178
+
+GET {{Swegon.Recruitment.CodeTest.Backend.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
