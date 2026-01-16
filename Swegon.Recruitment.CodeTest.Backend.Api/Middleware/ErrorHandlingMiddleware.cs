@@ -1,33 +1,19 @@
 using System.Net;
 using System.Text.Json;
-using Swegon.Recruitment.CodeTest.Backend.Api.Contracts.Enums;
-using Swegon.Recruitment.CodeTest.Backend.Api.Contracts.Responses;
 
 namespace Swegon.Recruitment.CodeTest.Backend.Api.Middleware;
 
-/// <summary>
-/// Middleware for global error handling
-/// </summary>
-public class ErrorHandlingMiddleware
+public class ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ErrorHandlingMiddleware> _logger;
-
-    public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await _next(context);
+            await next(context);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred");
+            logger.LogError(ex, "An unhandled exception occurred");
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -37,13 +23,12 @@ public class ErrorHandlingMiddleware
         var response = context.Response;
         response.ContentType = "application/json";
 
-        var errorResponse = new ErrorResponse
+        var errorResponse = new
         {
-            Code = ErrorCode.InternalError,
-            Message = "An error occurred while processing your request",
-            Details = exception.Message,
-            Timestamp = DateTime.UtcNow,
-            RequestId = context.TraceIdentifier
+            message = "An error occurred while processing your request",
+            details = exception.Message,
+            timestamp = DateTime.UtcNow,
+            requestId = context.TraceIdentifier,
         };
 
         response.StatusCode = exception switch
@@ -51,13 +36,13 @@ public class ErrorHandlingMiddleware
             ArgumentException => (int)HttpStatusCode.BadRequest,
             KeyNotFoundException => (int)HttpStatusCode.NotFound,
             UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
-            _ => (int)HttpStatusCode.InternalServerError
+            _ => (int)HttpStatusCode.InternalServerError,
         };
 
-        var result = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+        var result = JsonSerializer.Serialize(
+            errorResponse,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
 
         await response.WriteAsync(result);
     }

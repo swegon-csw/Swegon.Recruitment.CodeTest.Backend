@@ -1,0 +1,143 @@
+[
+  {
+    "id": "1",
+    "name": "GOLD RX Air Handling Unit",
+    "description": "High-efficiency air handling unit with heat recovery",
+    "category": "Air Handling Units",
+    "price": 15000,
+    "currency": "USD",
+    "imageUrl": "https://www.swegon.com/globalassets/digizuite/4382-en-gold_rx_productimage_main.tif/hero",
+    "inStock": true,
+    "rating": 4.5,
+    "reviewCount": 24,
+    "createdAt": "2025-01-01T00:00:00Z",
+    "updatedAt": "2025-01-01T00:00:00Z",
+    "specifications": [
+      { "name": "Airflow", "value": "2000", "unit": "m³/h" },
+      { "name": "Power", "value": "1.5", "unit": "kW" },
+      { "name": "Voltage", "value": "400", "unit": "V" },
+      { "name": "Weight", "value": "150", "unit": "kg" }
+    ],
+    "features": [
+      "Energy efficient operation",
+      "Low noise level",
+      "Easy maintenance",
+      "Smart controls"
+    ],
+    "manufacturer": "Swegon AB",
+    "warranty": "5 years"
+  },
+  {
+    "id": "2",
+    "name": "SILVER e3 Fan Coil",
+    "description": "Energy-efficient fan coil unit for commercial spaces",
+    "category": "Fan Coils",
+    "price": 3500,
+    "currency": "USD",
+    "imageUrl": "https://www.swegon.com/globalassets/digizuite/1222-en-silverc_rx_productimage_main.tif/cardimage",
+    "inStock": true,
+    "rating": 4.2,
+    "reviewCount": 18,
+    "createdAt": "2025-01-02T00:00:00Z",
+    "updatedAt": "2025-01-02T00:00:00Z",
+    "specifications": [
+      { "name": "Airflow", "value": "800", "unit": "m³/h" },
+      { "name": "Power", "value": "0.6", "unit": "kW" },
+      { "name": "Voltage", "value": "230", "unit": "V" },
+      { "name": "Weight", "value": "45", "unit": "kg" }
+    ],
+    "features": [
+      "Compact design",
+      "Low energy consumption",
+      "Quiet operation",
+      "Remote control ready"
+    ],
+    "manufacturer": "Swegon AB",
+    "warranty": "3 years"
+  },
+  {
+    "id": "3",
+    "name": "BLUE BOX Chiller",
+    "description": "Compact and efficient cooling solution",
+    "category": "Chillers",
+    "price": 25000,
+    "currency": "USD",
+    "imageUrl": "https://www.blueboxcooling.com/thumb/referenzehome/i.jpg",
+    "inStock": false,
+    "rating": 4.8,
+    "reviewCount": 32,
+    "createdAt": "2025-01-03T00:00:00Z",
+    "updatedAt": "2025-01-03T00:00:00Z",
+    "specifications": [
+      { "name": "Cooling Capacity", "value": "50", "unit": "kW" },
+      { "name": "Power", "value": "12", "unit": "kW" },
+      { "name": "Voltage", "value": "400", "unit": "V" },
+      { "name": "Weight", "value": "350", "unit": "kg" }
+    ],
+    "features": [
+      "High efficiency",
+      "Environmentally friendly refrigerant",
+      "Advanced control system",
+      "Robust construction"
+    ],
+    "manufacturer": "Swegon AB",
+    "warranty": "7 years"
+  },
+  {
+    "id": "4",
+    "name": "CASA W4 Heat Pump",
+    "description": "Advanced heat pump with smart controls",
+    "category": "Heat Pumps",
+    "price": 12000,
+    "currency": "USD",
+    "imageUrl": null,
+    "inStock": true,
+    "rating": 4.6,
+    "reviewCount": 28,
+    "createdAt": "2025-01-04T00:00:00Z",
+    "updatedAt": "2025-01-04T00:00:00Z",
+    "specifications": [
+      { "name": "Heating Capacity", "value": "8", "unit": "kW" },
+      { "name": "Cooling Capacity", "value": "6", "unit": "kW" },
+      { "name": "Power", "value": "2.5", "unit": "kW" },
+      { "name": "Voltage", "value": "230", "unit": "V" },
+      { "name": "Weight", "value": "85", "unit": "kg" }
+    ],
+    "features": [
+      "Heating and cooling",
+      "Wi-Fi connectivity",
+      "Energy-saving mode",
+      "Silent operation"
+    ],
+    "manufacturer": "Swegon AB",
+    "warranty": "5 years"
+  },
+  {
+    "id": "5",
+    "name": "PARASOL Ventilation Unit",
+    "description": "Smart ventilation with air quality monitoring",
+    "category": "Ventilation",
+    "price": 5500,
+    "currency": "USD",
+    "imageUrl": "https://www.swegon.com/globalassets/digizuite/1871-en-parasolzenith_productimage_main.tif/cardimage",
+    "inStock": true,
+    "rating": 4.3,
+    "reviewCount": 15,
+    "createdAt": "2025-01-05T00:00:00Z",
+    "updatedAt": "2025-01-05T00:00:00Z",
+    "specifications": [
+      { "name": "Airflow", "value": "1200", "unit": "m³/h" },
+      { "name": "Power", "value": "0.8", "unit": "kW" },
+      { "name": "Voltage", "value": "230", "unit": "V" },
+      { "name": "Weight", "value": "60", "unit": "kg" }
+    ],
+    "features": [
+      "Air quality sensors",
+      "Automatic ventilation control",
+      "Filter monitoring",
+      "App connectivity"
+    ],
+    "manufacturer": "Swegon AB",
+    "warranty": "4 years"
+  }
+]

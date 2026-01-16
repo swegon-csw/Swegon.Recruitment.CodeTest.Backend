@@ -1,166 +1,121 @@
-using Microsoft.Extensions.Logging;
-using Swegon.Recruitment.CodeTest.Backend.Api.Models;
-using Swegon.Recruitment.CodeTest.Backend.Api.Contracts.Interfaces;
-using Swegon.Recruitment.CodeTest.Backend.Api.Contracts.Requests;
-using Swegon.Recruitment.CodeTest.Backend.Api.Contracts.Responses;
-using Swegon.Recruitment.CodeTest.Backend.Api.Contracts.Enums;
-using Swegon.Recruitment.CodeTest.Backend.Api.Helpers;
-using Swegon.Recruitment.CodeTest.Backend.Api.Calculators;
-using Swegon.Recruitment.CodeTest.Backend.Api.Validators;
-using System.Collections.Concurrent;
+using Swegon.Recruitment.CodeTest.Backend.Api.Contracts;
 
 namespace Swegon.Recruitment.CodeTest.Backend.Api.Services;
 
-/// <summary>
-/// Calculation service with comprehensive calculation management and caching
-/// </summary>
-public class CalculationService : ICalculationService
+public class CalculationService()
 {
-    private readonly ILogger<CalculationService> _logger;
-    private readonly ProductService _productService;
-    private readonly CacheService _cacheService;
-    private readonly CalculationRequestValidator _validator;
-    private readonly PrimaryCalculator _primaryCalculator;
-    private readonly ComplexCalculator _complexCalculator;
-    private readonly ConcurrentDictionary<Guid, Calculation> _calculations;
-    
-    public CalculationService(
-        ILogger<CalculationService> logger,
-        ProductService productService,
-        CacheService cacheService,
-        CalculationRequestValidator validator,
-        PrimaryCalculator primaryCalculator,
-        ComplexCalculator complexCalculator)
+    private List<CalculationHistoryDto>? _calculationsCache;
+
+    public CalculationResultDto Calculate(CalculationInputDto input)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _productService = productService ?? throw new ArgumentNullException(nameof(productService));
-        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
-        _primaryCalculator = primaryCalculator ?? throw new ArgumentNullException(nameof(primaryCalculator));
-        _complexCalculator = complexCalculator ?? throw new ArgumentNullException(nameof(complexCalculator));
-        _calculations = new ConcurrentDictionary<Guid, Calculation>();
-    }
-    
-    public async Task<CalculationResponse> CalculateAsync(
-        CalculationRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation("Starting calculation for product {ProductId}", request.ProductId);
-        
-        var validation = _validator.Validate(request);
-        if (!validation.IsValid)
+        var volume = input.Area * input.Height;
+        var activityMultiplier = input.ActivityLevel.ToLower() switch
         {
-            throw new InvalidOperationException($"Validation failed: {string.Join(", ", validation.Errors.Select(e => e.Message))}");
-        }
-        
-        var productResponse = await _productService.GetProductByIdAsync(request.ProductId, cancellationToken);
-        if (productResponse == null)
-        {
-            throw new InvalidOperationException($"Product {request.ProductId} not found");
-        }
-        
-        var product = new Product
-        {
-            Id = productResponse.Id,
-            Name = productResponse.Name,
-            Price = productResponse.Price,
-            Type = productResponse.Type
+            "low" => 2.0,
+            "high" => 4.0,
+            _ => 3.0,
         };
-        
-        var calculator = request.Parameters.ContainsKey("useComplexCalculator") &&
-                        Convert.ToBoolean(request.Parameters["useComplexCalculator"])
-            ? _complexCalculator
-            : _primaryCalculator;
-        
-        var calculationResult = await calculator.CalculateAsync(product, request.Quantity, request.Parameters, cancellationToken);
-        
-        var calculation = new Calculation
+
+        var airflow = Math.Round(volume * 6 * activityMultiplier / 3600, 2);
+        var coolingCapacity = (int)Math.Round(input.Area * 100 * activityMultiplier);
+        var heatingCapacity = (int)Math.Round(input.Area * 80 * activityMultiplier);
+        var energyConsumption = Math.Round((coolingCapacity + heatingCapacity) * 0.7 / 1000, 2);
+
+        return new CalculationResultDto
         {
-            ProductId = request.ProductId,
-            Status = calculationResult.Status,
-            Total = calculationResult.Total,
-            Subtotal = calculationResult.Subtotal,
-            DiscountAmount = calculationResult.DiscountAmount,
-            TaxAmount = calculationResult.TaxAmount,
-            Quantity = request.Quantity,
-            InputParameters = request.Parameters,
-            Breakdown = calculationResult.Steps,
-            Metadata = calculationResult.Metadata,
-            ProcessingTimeMs = calculationResult.ProcessingDurationMs
+            Airflow = airflow,
+            CoolingCapacity = coolingCapacity,
+            HeatingCapacity = heatingCapacity,
+            EnergyConsumption = energyConsumption,
+            Cost = new CalculationCost
+            {
+                Installation = (int)Math.Round(input.Area * 50),
+                Annual = (int)Math.Round(energyConsumption * 365 * 0.15),
+                Lifetime = (int)Math.Round(energyConsumption * 365 * 15 * 0.15),
+            },
+            Recommendations = new List<string>
+            {
+                "Consider high-efficiency equipment for energy savings",
+                "Regular maintenance recommended every 6 months",
+            },
         };
-        
-        _calculations.TryAdd(calculation.Id, calculation);
-        
-        _logger.LogInformation("Calculation {CalculationId} completed with total {Total}", 
-            calculation.Id, calculation.Total);
-        
-        return MappingHelper.MapToResponse(calculation);
     }
-    
-    public async Task<PagedResponse<CalculationResponse>> GetCalculationHistoryAsync(
-        Guid productId,
-        FilterRequest filter,
-        CancellationToken cancellationToken = default)
+
+    // TODO: Needs to be refactored
+    public CalculationResultDto? CalculateAdvanced(CalculationInputDto input)
     {
-        var history = _calculations.Values
-            .Where(c => c.ProductId == productId)
-            .OrderByDescending(c => c.CalculatedAt)
-            .Skip((filter.Page - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .ToList();
-        
-        var totalCount = _calculations.Values.Count(c => c.ProductId == productId);
-        var responses = MappingHelper.MapToResponseList(history);
-        
-        return MappingHelper.CreatePagedResponse(responses, filter.Page, filter.PageSize, totalCount);
-    }
-    
-    public async Task<CalculationResponse?> GetCalculationByIdAsync(
-        Guid id,
-        CancellationToken cancellationToken = default)
-    {
-        if (_calculations.TryGetValue(id, out var calculation))
+        var result = new CalculationResultDto
         {
-            return MappingHelper.MapToResponse(calculation);
+            Airflow = 0,
+            CoolingCapacity = 0,
+            HeatingCapacity = 0,
+            EnergyConsumption = 0,
+            Cost = new CalculationCost(),
+            Recommendations = new List<string>(),
+        };
+
+        if (input != null)
+        {
+            if (input.Area > 0)
+            {
+                if (input.Height > 0)
+                {
+                    var volume = input.Area * input.Height;
+                    if (volume > 0)
+                    {
+                        var activityMultiplier = 1.5;
+
+                        if (input.ActivityLevel != null)
+                        {
+                            if (input.ActivityLevel.ToLower() == "low")
+                            {
+                                activityMultiplier = 1.0;
+                            }
+                            else if (input.ActivityLevel.ToLower() == "high")
+                            {
+                                activityMultiplier = 2.0;
+                            }
+
+                            if (input.Temperature > 0)
+                            {
+                                var baseAirflow = volume * 6 * activityMultiplier / 3600;
+                                result.Airflow = Math.Round(baseAirflow, 2);
+                                result.AirflowPerHumidityPercent = Math.Round(
+                                    baseAirflow / input.HumidityPercent,
+                                    4
+                                );
+                                result.CoolingCapacity = (int)
+                                    Math.Round(input.Area * 100 * activityMultiplier);
+                                result.HeatingCapacity = (int)
+                                    Math.Round(input.Area * 80 * activityMultiplier);
+                                result.EnergyConsumption = Math.Round(
+                                    (result.CoolingCapacity + result.HeatingCapacity) * 0.7 / 1000,
+                                    2
+                                );
+                                result.Cost.Installation = (int)Math.Round(input.Area * 50);
+                                result.Cost.Annual = (int)
+                                    Math.Round(result.EnergyConsumption * 365 * 0.15);
+                                result.Cost.Lifetime = (int)
+                                    Math.Round(result.EnergyConsumption * 365 * 15 * 0.15);
+
+                                if (input.Temperature > 25)
+                                {
+                                    if (input.HumidityPercent > 60)
+                                    {
+                                        result.Recommendations.Add(
+                                            "High temperature and humidity detected"
+                                        );
+                                    }
+                                }
+
+                                return result;
+                            }
+                        }
+                    }
+                }
+            }
         }
-        
+
         return null;
-    }
-    
-    public async Task<BatchResponse<CalculationResponse>> BatchCalculateAsync(
-        BatchRequest<CalculationRequest> request,
-        CancellationToken cancellationToken = default)
-    {
-        var responses = new List<CalculationResponse>();
-        var errors = new List<string>();
-        
-        foreach (var item in request.Items)
-        {
-            try
-            {
-                var response = await CalculateAsync(item, cancellationToken);
-                responses.Add(response);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"Error calculating for product {item.ProductId}: {ex.Message}");
-            }
-        }
-        
-        return new BatchResponse<CalculationResponse>
-        {
-            Items = responses,
-            SuccessCount = responses.Count,
-            FailureCount = errors.Count,
-            Errors = errors
-        };
-    }
-    
-    public async Task<ValidationResponse> ValidateCalculationAsync(
-        CalculationRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var validation = _validator.Validate(request);
-        return MappingHelper.MapToResponse(validation);
     }
 }
